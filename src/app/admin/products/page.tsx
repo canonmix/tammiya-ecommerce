@@ -2,7 +2,7 @@
 /* eslint-disable @next/next/no-img-element */
 
 import Link from "next/link";
-import { ChangeEvent, FormEvent, useEffect, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { products as seedProducts, Product, formatBaht } from "@/lib/data";
 import MultipleImageUploader from "@/components/admin/multiple-image-uploader";
 
