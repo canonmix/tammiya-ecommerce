@@ -1,65 +1,25 @@
-import Image from "next/image";
+"use client";
+
+import { useMemo, useState } from "react";
+import Link from "next/link";
+import { formatBaht, products } from "@/lib/data";
 
 export default function Home() {
-  return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
-  );
+  const [category, setCategory] = useState("ทั้งหมด");
+  const [cart, setCart] = useState<string[]>([]);
+  const categories = ["ทั้งหมด", "รถ Mini 4WD", "อะไหล่และมอเตอร์", "อุปกรณ์แต่งรถ"];
+  const visible = useMemo(() => category === "ทั้งหมด" ? products : products.filter((p) => p.category === category), [category]);
+  const add = (id: string) => setCart((items) => [...items, id]);
+  return <main>
+    <div style={{background: "#18212b", color: "white"}} className="py-3 text-center text-xs tracking-wide">ส่งฟรีเมื่อซื้อครบ ฿1,500 · เก็บเงินปลายทางทั่วประเทศ</div>
+    <header className="border-b border-[#e7e1d8] bg-[#f8f5ef]/95 sticky top-0 z-20 backdrop-blur"><div className="container flex h-20 items-center justify-between gap-5">
+      <Link href="/" className="text-xl font-black tracking-tight">TAMIYA<span className="text-[#ef6c3d]">.</span></Link>
+      <nav className="hidden gap-7 text-sm font-bold md:flex"><a href="#shop">สินค้า</a><a href="#story">เรื่องราวของเรา</a><a href="#service">บริการ</a></nav>
+      <div className="flex items-center gap-3 text-sm"><Link href="/login" className="hidden rounded-full border border-[#d8d0c5] px-4 py-2 font-bold sm:block">เข้าสู่ระบบ</Link><Link href="/checkout" className="rounded-full bg-[#ef6c3d] px-4 py-2 font-bold text-white">ตะกร้า ({cart.length})</Link></div>
+    </div></header>
+    <section className="container grid gap-8 py-16 md:grid-cols-[1.1fr_.9fr] md:items-center md:py-24"><div><p className="eyebrow mb-5">Built for the next corner</p><h1 className="display max-w-xl">เติมความเร็ว<br/><span className="text-[#ef6c3d]">ให้ทุกคัน</span></h1><p className="mt-7 max-w-md text-lg leading-8 text-[#687582]">ของแท้ อะไหล่แท้ และของแต่งที่คัดมาแล้วสำหรับคนที่จริงจังกับทุกสนาม</p><div className="mt-9 flex flex-wrap gap-3"><a href="#shop" className="rounded-full bg-[#18212b] px-6 py-3 font-bold text-white">ช้อปสินค้า</a><a href="#story" className="rounded-full border border-[#cfc6bb] px-6 py-3 font-bold">รู้จัก Tamiya</a></div></div><div className="relative flex min-h-[360px] items-center justify-center overflow-hidden rounded-[36px] bg-[#c4e9f2] p-8"><div className="absolute -right-16 -top-16 h-56 w-56 rounded-full bg-white/30"/><div className="relative rotate-[-8deg] text-center"><div className="text-[110px] font-black italic leading-none text-[#18212b] drop-shadow-[8px_10px_0_rgba(239,108,61,.9)]">4WD</div><p className="mt-4 font-black tracking-[.35em]">PREMIUM GARAGE</p></div></div></section>
+    <section id="shop" className="container pb-24"><div className="mb-8 flex flex-col justify-between gap-5 md:flex-row md:items-end"><div><p className="eyebrow mb-3">Curated collection</p><h2 className="text-4xl font-black tracking-tight">ของที่พร้อมลงสนาม</h2></div><div className="flex flex-wrap gap-2">{categories.map((item) => <button key={item} onClick={() => setCategory(item)} className={`rounded-full px-4 py-2 text-sm font-bold ${category === item ? "bg-[#18212b] text-white" : "border border-[#d8d0c5]"}`}>{item}</button>)}</div></div><div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">{visible.map((product) => <article key={product.id} className="group overflow-hidden rounded-3xl border border-[#e7e1d8] bg-white"><div className="relative flex h-60 items-center justify-center" style={{background: product.color}}><span className="text-6xl font-black italic text-[#18212b]/80 transition-transform group-hover:scale-110">{product.name.split(" ")[0]}</span>{product.badge && <span className="absolute left-4 top-4 rounded-full bg-white px-3 py-1 text-xs font-black">{product.badge}</span>}</div><div className="p-5"><p className="mb-2 text-xs font-bold text-[#ef6c3d]">{product.category}</p><h3 className="text-lg font-black">{product.name}</h3><p className="mt-2 min-h-12 text-sm leading-6 text-[#687582]">{product.description}</p><div className="mt-5 flex items-center justify-between"><span className="text-xl font-black">{formatBaht(product.price)}</span><button onClick={() => add(product.id)} className="rounded-full bg-[#18212b] px-4 py-2 text-sm font-bold text-white hover:bg-[#ef6c3d]">ใส่ตะกร้า</button></div></div></article>)}</div></section>
+    <section id="story" className="bg-[#18212b] py-20 text-white"><div className="container grid gap-10 md:grid-cols-2 md:items-center"><div><p className="eyebrow mb-4">Our garage</p><h2 className="text-4xl font-black tracking-tight">ไม่ใช่แค่ของเล่น<br/>แต่มันคือความเร็ว</h2></div><p className="max-w-lg text-lg leading-8 text-white/65">Tamiya Premium Shop ตั้งใจคัดสรรโมเดลและอะไหล่ที่ทำให้ทุกคนสนุกกับการประกอบ ปรับแต่ง และเอาชนะโค้งถัดไป</p></div></section>
+    <footer id="service" className="container flex flex-col justify-between gap-5 py-8 text-sm text-[#687582] md:flex-row"><span>© 2026 Tamiya Premium Shop</span><span>ชำระเงินปลายทาง · QR Payment · Support 09x-xxx-xxxx</span></footer>
+  </main>;
 }
