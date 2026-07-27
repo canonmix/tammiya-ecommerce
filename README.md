@@ -9,6 +9,9 @@ SEO-first e-commerce starter for Tamiya Mini 4WD products.
 - Login UI for Facebook OAuth and mobile OTP
 - CMS dashboard for sales overview, products, customers, and recent orders
 - Thai metadata, semantic sections, structured-ready product data, and responsive UI
+- Product-code SEO: searchable and indexable pages for `Tamiya 15437`, `15437`, and product names
+- Per-product metadata, canonical URLs, and JSON-LD Product/Offer schema
+- Admin CMS protected by an HttpOnly, HMAC-signed session cookie
 
 ## Run locally
 
