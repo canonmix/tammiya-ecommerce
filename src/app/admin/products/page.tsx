@@ -2,7 +2,7 @@
 /* eslint-disable @next/next/no-img-element */
 
 import Link from "next/link";
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useCallback, useEffect, useState } from "react";
 import { products as seedProducts, Product, formatBaht } from "@/lib/data";
 import MultipleImageUploader from "@/components/admin/multiple-image-uploader";
 
@@ -11,13 +11,14 @@ type ProductStatus = "AVAILABLE" | "DISCONTINUED";
 type ProductDraft = Product & { images: string[]; status: ProductStatus };
 type ProductEdit = { name: string; sku: string; category: string; price: string; stock: string; description: string; status: ProductStatus };
 type EditImage = { src: string; file?: File };
-const categoryKey = "tamiya_categories";
 const productKey = "tamiya_admin_products";
-const defaultCategories: Category[] = [{ id: "cars", name: "รถ Mini 4WD" }, { id: "parts", name: "อะไหล่และมอเตอร์" }, { id: "tools", name: "อุปกรณ์แต่งรถ" }];
+// Categories were cached here before; the copy went stale whenever one was deleted, so it is only cleared now.
+const legacyCategoryKey = "tamiya_categories";
+const fetchFresh = (url: string) => fetch(url, { cache: "no-store" });
 const readAsDataUrls = (files: File[]) => Promise.all(files.map((file) => new Promise<string>((resolve, reject) => { const reader = new FileReader(); reader.onload = () => resolve(String(reader.result)); reader.onerror = reject; reader.readAsDataURL(file); })));
 
 export default function ProductManagement() {
-  const [categories, setCategories] = useState<Category[]>(defaultCategories);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [items, setItems] = useState<ProductDraft[]>([]);
   const [newCategory, setNewCategory] = useState("");
   const [categoryEditorOpen, setCategoryEditorOpen] = useState(false);
@@ -31,31 +32,50 @@ export default function ProductManagement() {
   const [selectedProduct, setSelectedProduct] = useState<ProductDraft | null>(null);
   const [editingProduct, setEditingProduct] = useState<ProductEdit | null>(null);
   const [editingImages, setEditingImages] = useState<EditImage[]>([]);
-  const [form, setForm] = useState({ name: "", sku: "", category: defaultCategories[0].name, price: "", stock: "", description: "" });
+  const [form, setForm] = useState({ name: "", sku: "", category: "", price: "", stock: "", description: "" });
+
+  // Categories always come from the API (PostgreSQL); selections pointing at a deleted one are dropped.
+  const applyCategories = useCallback((next: Category[]) => {
+    setCategories(next);
+    setForm((current) => next.some((category) => category.name === current.category) ? current : { ...current, category: next[0]?.name || "" });
+    setSearchCategory((current) => next.some((category) => category.name === current) ? current : "");
+  }, []);
+  const loadCategories = useCallback(async () => {
+    const response = await fetchFresh("/api/admin/categories");
+    if (!response.ok) throw new Error("API unavailable");
+    applyCategories(await response.json() as Category[]);
+  }, [applyCategories]);
 
   useEffect(() => {
     let active = true;
-    Promise.all([fetch("/api/admin/categories"), fetch("/api/admin/products")]).then(async ([categoryResponse, productResponse]) => {
+    window.localStorage.removeItem(legacyCategoryKey);
+    Promise.all([fetchFresh("/api/admin/categories"), fetchFresh("/api/admin/products")]).then(async ([categoryResponse, productResponse]) => {
       if (!categoryResponse.ok || !productResponse.ok) throw new Error("API unavailable");
       const apiCategories = await categoryResponse.json() as Category[];
       const apiProducts = await productResponse.json() as Array<Product & { status?: string; category: Category; images: Array<{ url: string }> }>;
       if (!active) return;
-      setCategories(apiCategories);
+      applyCategories(apiCategories);
       setItems(apiProducts.map((product) => ({ ...product, status: product.status === "DISCONTINUED" ? "DISCONTINUED" : "AVAILABLE", category: product.category?.name || "", images: product.images.map((image) => image.url) })));
-      setForm((current) => ({ ...current, category: apiCategories[0]?.name || current.category }));
     }).catch(() => {
-      const savedCategories = window.localStorage.getItem(categoryKey);
+      if (!active) return;
       const savedProducts = window.localStorage.getItem(productKey);
-      if (savedCategories) setCategories(JSON.parse(savedCategories));
+      applyCategories([]);
       if (savedProducts) setItems(JSON.parse(savedProducts));
       else setItems(seedProducts.map((product) => ({ ...product, images: [], status: "AVAILABLE" as ProductStatus })));
       setMessage("API ยังไม่พร้อม ใช้ข้อมูล Demo ชั่วคราว");
     });
     return () => { active = false; };
-  }, []);
+  }, [applyCategories]);
 
-  const saveCategories = (next: Category[]) => { setCategories(next); window.localStorage.setItem(categoryKey, JSON.stringify(next)); };
-  const addCategory = async () => { const name = newCategory.trim(); if (!name) return; const response = await fetch("/api/admin/categories", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name }) }); if (!response.ok) { setMessage("เพิ่ม Category ไม่สำเร็จ หรือมีชื่อซ้ำ"); return; } const created = await response.json() as Category; const next = [...categories, created]; saveCategories(next); setForm((current) => ({ ...current, category: name })); setNewCategory(""); setCategoryEditorOpen(false); setMessage(`เพิ่ม Category “${name}” แล้ว`); };
+  // Refetch when the tab regains focus so Category deletes made elsewhere show up immediately.
+  useEffect(() => {
+    const refresh = () => { if (document.visibilityState === "visible") loadCategories().catch(() => {}); };
+    window.addEventListener("focus", refresh);
+    document.addEventListener("visibilitychange", refresh);
+    return () => { window.removeEventListener("focus", refresh); document.removeEventListener("visibilitychange", refresh); };
+  }, [loadCategories]);
+
+  const addCategory = async () => { const name = newCategory.trim(); if (!name) return; const response = await fetch("/api/admin/categories", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name }) }); if (!response.ok) { setMessage("เพิ่ม Category ไม่สำเร็จ หรือมีชื่อซ้ำ"); return; } const created = await response.json() as Category; await loadCategories().catch(() => setCategories((current) => [...current, created])); setForm((current) => ({ ...current, category: name })); setNewCategory(""); setCategoryEditorOpen(false); setMessage(`เพิ่ม Category “${name}” แล้ว`); };
   const readImages = (files: File[]) => { setSelectedFiles((current) => [...current, ...files]); readAsDataUrls(files).then((images) => setSelectedImages((current) => [...current, ...images])); };
   const readEditingImages = (files: File[]) => { readAsDataUrls(files).then((images) => setEditingImages((current) => [...current, ...images.map((src, index) => ({ src, file: files[index] }))])); };
   const openProduct = (item: ProductDraft) => { setSelectedProduct(item); setEditingProduct({ name: item.name, sku: item.sku, category: item.category, price: String(item.price), stock: String(item.stock), description: item.description, status: item.status }); setEditingImages(item.images.map((src) => ({ src }))); };

@@ -1,10 +1,12 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
-const defaults = ["รถ Mini 4WD", "อะไหล่และมอเตอร์", "อุปกรณ์แต่งรถ"];
+// GET only reads. The default categories used to be upserted here on every request,
+// which resurrected every default Category an admin had deleted. New categories are
+// created through POST (the "+ Category" form in Product Management).
 export async function GET() {
-  for (const name of defaults) await prisma.category.upsert({ where: { name }, update: {}, create: { name } });
-  return NextResponse.json(await prisma.category.findMany({ include: { _count: { select: { products: true } } }, orderBy: { createdAt: "asc" } }));
+  const categories = await prisma.category.findMany({ include: { _count: { select: { products: true } } }, orderBy: { createdAt: "asc" } });
+  return NextResponse.json(categories, { headers: { "Cache-Control": "no-store" } });
 }
 export async function POST(request: Request) {
   const body = await request.json().catch(() => null) as { name?: string } | null;

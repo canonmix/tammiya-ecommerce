@@ -8,7 +8,7 @@ type Category = { id: string; name: string; _count?: { products: number } };
 export default function CategoryManagement() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [message, setMessage] = useState("");
-  const load = () => fetch("/api/admin/categories").then((response) => response.json()).then(setCategories);
+  const load = () => fetch("/api/admin/categories", { cache: "no-store" }).then((response) => response.json()).then(setCategories);
   useEffect(() => { load(); }, []);
   const remove = async (category: Category) => {
     if (category._count?.products) return;
