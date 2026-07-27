@@ -23,6 +23,7 @@ model Product {
   price       Int
   stock       Int            @default(0)
   description String
+  status      String         @default("AVAILABLE")
   color       String         @default("#f5f7f8")
   createdAt   DateTime       @default(now())
   updatedAt   DateTime       @updatedAt
