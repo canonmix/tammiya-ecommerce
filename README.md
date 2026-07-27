@@ -26,7 +26,7 @@ Open [http://localhost:3000](http://localhost:3000) for the storefront and [http
 
 This repository intentionally keeps secrets out of source control. Copy `.env.example` to `.env.local` and connect:
 
-- PostgreSQL + Prisma for persistent products, orders, inventory, and dashboard aggregates
+- PostgreSQL + Prisma is configured for persistent products, orders, inventory, and dashboard aggregates
 - DigitalOcean Spaces for multiple product images. Development uses `tamiya-premium/dev`; production uses `tamiya-premium/prod`.
 - Auth.js Facebook provider and an SMS/OTP provider
 - PromptPay/QR payment provider and a verified payment webhook
