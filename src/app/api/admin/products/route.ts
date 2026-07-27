@@ -15,10 +15,10 @@ export async function POST(request: Request) {
 }
 
 export async function PATCH(request: Request) {
-  const body = await request.json().catch(() => null) as { id?: string; sku?: string; name?: string; categoryId?: string; price?: number; stock?: number; description?: string; status?: string } | null;
+  const body = await request.json().catch(() => null) as { id?: string; sku?: string; name?: string; categoryId?: string; price?: number; stock?: number; description?: string; status?: string; images?: string[] } | null;
   if (!body?.id || !body.sku?.trim() || !body.name?.trim() || !body.categoryId || body.price === undefined || body.stock === undefined || !statuses.includes(body.status as typeof statuses[number])) return NextResponse.json({ error: "Invalid product data" }, { status: 400 });
   if (!Number.isFinite(Number(body.price)) || Number(body.price) < 0 || !Number.isInteger(Number(body.stock)) || Number(body.stock) < 0) return NextResponse.json({ error: "Invalid price or stock" }, { status: 400 });
   const slug = `${body.sku.trim()}-${body.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "")}`;
-  try { const product = await prisma.product.update({ where: { id: body.id }, data: { sku: body.sku.trim(), name: body.name.trim(), slug, categoryId: body.categoryId, price: Number(body.price), stock: Number(body.stock), description: body.description?.trim() || "", status: body.status }, include: includeProduct }); return NextResponse.json(product); }
+  try { const product = await prisma.product.update({ where: { id: body.id }, data: { sku: body.sku.trim(), name: body.name.trim(), slug, categoryId: body.categoryId, price: Number(body.price), stock: Number(body.stock), description: body.description?.trim() || "", status: body.status, ...(body.images ? { images: { deleteMany: {}, create: body.images.map((url, index) => ({ url, alt: body.name!, sortOrder: index })) } } : {}) }, include: includeProduct }); return NextResponse.json(product); }
   catch { return NextResponse.json({ error: "Product not found or SKU already exists" }, { status: 409 }); }
 }
