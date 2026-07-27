@@ -27,10 +27,10 @@ export default function ProductManagement() {
     Promise.all([fetch("/api/admin/categories"), fetch("/api/admin/products")]).then(async ([categoryResponse, productResponse]) => {
       if (!categoryResponse.ok || !productResponse.ok) throw new Error("API unavailable");
       const apiCategories = await categoryResponse.json() as Category[];
-      const apiProducts = await productResponse.json() as Array<Product & { images: Array<{ url: string }> }>;
+      const apiProducts = await productResponse.json() as Array<Product & { category: Category; images: Array<{ url: string }> }>;
       if (!active) return;
       setCategories(apiCategories);
-      setItems(apiProducts.map((product) => ({ ...product, images: product.images.map((image) => image.url) })));
+      setItems(apiProducts.map((product) => ({ ...product, category: product.category?.name || "", images: product.images.map((image) => image.url) })));
       setForm((current) => ({ ...current, category: apiCategories[0]?.name || current.category }));
     }).catch(() => {
       const savedCategories = window.localStorage.getItem(categoryKey);
