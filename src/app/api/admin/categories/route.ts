@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 const defaults = ["รถ Mini 4WD", "อะไหล่และมอเตอร์", "อุปกรณ์แต่งรถ"];
 export async function GET() {
   for (const name of defaults) await prisma.category.upsert({ where: { name }, update: {}, create: { name } });
-  return NextResponse.json(await prisma.category.findMany({ orderBy: { createdAt: "asc" } }));
+  return NextResponse.json(await prisma.category.findMany({ include: { _count: { select: { products: true } } }, orderBy: { createdAt: "asc" } }));
 }
 export async function POST(request: Request) {
   const body = await request.json().catch(() => null) as { name?: string } | null;
