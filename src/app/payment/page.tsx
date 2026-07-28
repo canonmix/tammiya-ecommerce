@@ -14,11 +14,11 @@ const icons: Record<string, ReactNode> = {
 };
 
 const steps = [
-  { number: "01", key: "browse", kicker: "BROWSE", title: "หยิบสินค้าใส่ตะกร้า", detail: "เลือกโมเดล อะไหล่ หรือของแต่งที่ต้องการ แล้วกดใส่ตะกร้า", label: "เลือกของที่ใช่" },
-  { number: "02", key: "signin", kicker: "SIGN IN", title: "กด LOGIN เข้าสู่ระบบ", detail: "เข้าสู่ระบบเพื่อยืนยันข้อมูลผู้สั่งซื้อและที่อยู่จัดส่ง", label: "ยืนยันตัวตน" },
-  { number: "03", key: "review", kicker: "REVIEW", title: "ตรวจสอบข้อมูล และกดสั่งซื้อ", detail: "ตรวจสอบรายการสินค้า ที่อยู่ และยอดรวมให้เรียบร้อยก่อนยืนยัน", label: "เช็กให้ครบ" },
-  { number: "04", key: "pay", kicker: "PAY", title: "สแกน QR เพื่อชำระเงิน", detail: "สแกน QR Payment และชำระเงินตามยอดที่แสดงในคำสั่งซื้อ", label: "จ่ายง่ายในครั้งเดียว" },
-  { number: "05", key: "ship", kicker: "SHIP", title: "รอรับเลข Tracking ในวันถัดไป", detail: "ทีมงานจัดส่งสินค้าและแจ้งเลข Tracking ให้ในวันถัดไป", label: "พร้อมลงสนาม" },
+  { number: "01", key: "browse", kicker: "BROWSE", title: "หยิบใส่ตะกร้า", detail: "เลือกโมเดลและอะไหล่ที่ต้องการ" },
+  { number: "02", key: "signin", kicker: "SIGN IN", title: "เข้าสู่ระบบ", detail: "ยืนยันตัวตนและที่อยู่จัดส่ง" },
+  { number: "03", key: "review", kicker: "REVIEW", title: "ตรวจสอบและสั่งซื้อ", detail: "เช็กรายการ ที่อยู่ และยอดรวม" },
+  { number: "04", key: "pay", kicker: "PAY", title: "สแกน QR จ่ายเงิน", detail: "ชำระตามยอดในคำสั่งซื้อ" },
+  { number: "05", key: "ship", kicker: "SHIP", title: "รับเลข Tracking", detail: "จัดส่งและแจ้งเลขในวันถัดไป" },
 ];
 
 function StepIcon({ name }: { name: string }) {
@@ -34,14 +34,14 @@ export default function PaymentPage() {
   return <main className="min-h-screen bg-[#f7f6f2] text-[#18212b]">
     <div className="bg-[#18212b] py-3 text-center text-xs tracking-wide text-white">ส่งฟรีเมื่อซื้อครบ ฿1,500 · เก็บเงินปลายทางทั่วประเทศ</div>
     <header className="sticky top-0 z-20 border-b border-[#e7e1d8] bg-[#f7f6f2]/95 backdrop-blur"><div className="container flex h-20 items-center justify-between gap-5">
-      <Link href="/" aria-label="MINI4WD Premium Shop"><Image src="/mini4wd-logo.svg" alt="MINI4WD Premium Shop" width={220} height={66} className="h-10 w-auto" priority/></Link>
+      <Link href="/" aria-label="MINI4WD Premium Shop"><Image src="/mini4wd-logo.png" alt="MINI4WD Premium Shop" width={220} height={66} className="h-10 w-auto" priority/></Link>
       <nav className="hidden gap-7 text-sm font-bold md:flex"><Link href="/">สินค้า</Link><Link href="/payment" className="text-[#ef6c3d]">วิธีการชำระเงิน</Link><Link href="/#story">เรื่องราวของเรา</Link><Link href="/#service">บริการ</Link></nav>
       <div className="flex items-center gap-3 text-sm"><Link href="/login" className="hidden rounded-full border border-[#d8d0c5] px-4 py-2 font-bold sm:block">เข้าสู่ระบบ</Link><Link href="/checkout" className="rounded-full bg-[#ef6c3d] px-4 py-2 font-bold text-white">ไปที่ตะกร้า</Link></div>
     </div></header>
 
     <section className="relative isolate overflow-hidden bg-[#18212b] text-white"><div className="absolute inset-0 -z-10 opacity-20" style={{ backgroundImage: "linear-gradient(rgba(255,255,255,.14) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.14) 1px, transparent 1px)", backgroundSize: "42px 42px" }} /><div className="absolute -right-32 -top-40 -z-10 h-[520px] w-[520px] rounded-full border border-white/10"/><div className="absolute -right-16 -top-24 -z-10 h-[360px] w-[360px] rounded-full border border-[#ef6c3d]/40"/><div className="container grid gap-12 py-20 md:grid-cols-[1.05fr_.95fr] md:items-center md:py-28"><div><p className="mb-6 text-xs font-black uppercase tracking-[.3em] text-[#ef6c3d]">Payment journey / 05 steps</p><h1 className="max-w-2xl text-5xl font-black leading-[1.05] tracking-tight md:text-7xl">สั่งง่าย<br/><span className="text-[#ef6c3d]">จ่ายสบาย</span></h1><p className="mt-7 max-w-lg text-lg leading-8 text-white/65">ทุกโค้งของการสั่งซื้อถูกออกแบบให้ชัดเจน ตั้งแต่เลือกสินค้าไปจนถึงวันที่ได้รับเลข Tracking</p><Link href="/#shop" className="mt-9 inline-flex rounded-full bg-[#ef6c3d] px-6 py-3 font-black text-white transition hover:bg-white hover:text-[#18212b]">เลือกสินค้าเลย <span className="ml-3">↗</span></Link></div><div className="relative min-h-[280px] md:min-h-[390px]"><div className="absolute left-4 top-10 h-48 w-48 rounded-[40px] border border-white/15 bg-white/[.04] md:left-16 md:top-14 md:h-64 md:w-64"/><div className="absolute bottom-4 right-2 h-44 w-44 rounded-full border-[22px] border-[#ef6c3d] md:right-12 md:h-64 md:w-64 md:border-[30px]"/><div className="absolute right-8 top-4 rotate-12 text-[100px] font-black italic leading-none text-white/10 md:text-[170px]">QR</div><div className="absolute bottom-8 left-10 rotate-[-8deg] rounded-3xl bg-white p-5 text-[#18212b] shadow-2xl md:left-24 md:p-7"><div className="grid h-28 w-28 grid-cols-5 gap-1 md:h-40 md:w-40 md:gap-2">{Array.from({ length: 25 }).map((_, index) => <span key={index} className={`${[0,1,3,5,7,9,12,13,15,17,18,20,22,24].includes(index) ? "bg-[#18212b]" : "bg-white"} rounded-sm border border-[#18212b]/10`} />)}</div><p className="mt-3 text-center text-xs font-black tracking-[.2em]">SCAN TO PAY</p></div></div></div></section>
 
-    <section className="container py-20 md:py-28"><div className="grid gap-5 md:grid-cols-[.75fr_1.25fr] md:items-end"><div><p className="eyebrow mb-4">How it works</p><h2 className="max-w-md text-4xl font-black leading-tight tracking-tight md:text-5xl">จากหน้าร้าน<br/>ถึงหน้าบ้าน</h2></div><p className="max-w-xl text-lg leading-8 text-[#687582]">ทำตามขั้นตอนด้านล่างได้เลย ไม่ต้องเดา ไม่ต้องกังวล เราจะดูแลคำสั่งซื้อของคุณตั้งแต่ต้นจนจบ</p></div><div className="relative mt-16">
+    <section className="container py-20 md:py-28"><div className="grid gap-5 md:grid-cols-[.75fr_1.25fr] md:items-end"><div><p className="eyebrow mb-4">How it works</p><h2 className="max-w-md text-4xl font-black leading-tight tracking-tight md:text-5xl">จากหน้าร้าน<br/>ถึงหน้าบ้าน</h2></div><p className="max-w-md text-lg leading-8 text-[#687582]">ทำตาม 5 ขั้นตอนนี้ได้เลย เราดูแลให้ตั้งแต่ต้นจนจบ</p></div><div className="relative mt-16">
       {/* The rail runs between the first and last node centres — each column is 20% wide, so its centre sits at 10%. */}
       <span aria-hidden className="absolute left-[10%] right-[10%] top-7 hidden h-px bg-[linear-gradient(90deg,#ded6cb_0_6px,transparent_6px_12px)] bg-[length:12px_1px] md:block"/>
       <span aria-hidden className="absolute left-0 top-[22px] hidden h-2.5 w-2.5 rounded-full bg-[#ef6c3d] md:block"/>
@@ -55,9 +55,7 @@ export default function PaymentPage() {
           <span className="mb-5 flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-[#fbeae2] text-[#ef6c3d] transition duration-300 group-hover:bg-[#ef6c3d] group-hover:text-white md:mx-auto"><StepIcon name={step.key}/></span>
           <p className="text-[10px] font-black uppercase tracking-[.22em] text-[#ef6c3d]">{step.kicker}</p>
           <h3 className="mt-2.5 text-lg font-black leading-snug">{step.title}</h3>
-          <p className="mt-3 text-sm leading-6 text-[#687582]">{step.detail}</p>
-          {/* mt-auto keeps every pill on the same baseline no matter how long the copy above runs. */}
-          <div className="mt-auto pt-5"><span className="inline-flex rounded-full bg-[#f7f6f2] px-3 py-1.5 text-[11px] font-black text-[#18212b]/55 transition duration-300 group-hover:bg-[#fbeae2] group-hover:text-[#ef6c3d]">{step.label}</span></div>
+          <p className="mt-2.5 text-sm leading-6 text-[#687582]">{step.detail}</p>
         </div>
       </li>)}</ol>
     </div></section>
