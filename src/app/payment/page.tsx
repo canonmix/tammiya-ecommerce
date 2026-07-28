@@ -14,7 +14,7 @@ const icons: Record<string, ReactNode> = {
 };
 
 const steps = [
-  { number: "01", key: "browse", kicker: "BROWSE", title: "หยิบใส่ตะกร้า", detail: "เลือกโมเดลและอะไหล่ที่ต้องการ" },
+  { number: "01", key: "browse", kicker: "BROWSE", title: "หยิบใส่ตะกร้า", detail: "เลือกโมเดลและอะไหล่ที่ชอบ" },
   { number: "02", key: "signin", kicker: "SIGN IN", title: "เข้าสู่ระบบ", detail: "ยืนยันตัวตนและที่อยู่จัดส่ง" },
   { number: "03", key: "review", kicker: "REVIEW", title: "ตรวจสอบและสั่งซื้อ", detail: "เช็กรายการ ที่อยู่ และยอดรวม" },
   { number: "04", key: "pay", kicker: "PAY", title: "สแกน QR จ่ายเงิน", detail: "ชำระตามยอดในคำสั่งซื้อ" },
