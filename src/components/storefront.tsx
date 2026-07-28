@@ -23,7 +23,7 @@ export default function Storefront({ products, categories }: { products: Catalog
   return <main>
     <div style={{background: "#18212b", color: "white"}} className="py-3 text-center text-xs tracking-wide">ส่งฟรีเมื่อซื้อครบ ฿1,500 · เก็บเงินปลายทางทั่วประเทศ</div>
     <header className="border-b border-[#e7e1d8] bg-white/95 sticky top-0 z-20 backdrop-blur"><div className="container flex h-20 items-center justify-between gap-5">
-      <Link href="/" className="text-xl font-black tracking-tight">TAMIYA<span className="text-[#ef6c3d]">.</span></Link>
+      <Link href="/" aria-label="MINI4WD Premium Shop"><Image src="/mini4wd-logo.svg" alt="MINI4WD Premium Shop" width={220} height={66} className="h-10 w-auto" priority/></Link>
       <nav className="hidden gap-7 text-sm font-bold md:flex"><a href="#shop">สินค้า</a><Link href="/payment">วิธีการชำระเงิน</Link><a href="#story">เรื่องราวของเรา</a><a href="#service">บริการ</a></nav>
       <div className="flex items-center gap-3 text-sm"><Link href="/login" className="hidden rounded-full border border-[#d8d0c5] px-4 py-2 font-bold sm:block">เข้าสู่ระบบ</Link><Link href="/checkout" className="rounded-full bg-[#ef6c3d] px-4 py-2 font-bold text-white">ตะกร้า ({cart.length})</Link></div>
     </div></header>
