@@ -1,10 +1,122 @@
 @import "tailwindcss";
 
-:root { --ink: #18212b; --muted: #687582; --cream: #ffffff; --orange: #ef6c3d; --line: #e8ebee; }
-* { box-sizing: border-box; }
-body { margin: 0; background: var(--cream); color: var(--ink); font-family: Arial, "Noto Sans Thai", sans-serif; }
-a { color: inherit; text-decoration: none; }
+:root { --ink: #18212b; --ink-deep: #0e141b; --muted: #687582; --cream: #ffffff; --sand: #faf8f4; --orange: #ef6c3d; --ember: #ff9152; --line: #e8ebee; }
+
+/* These belong in the base layer — unlayered rules outrank Tailwind utilities no matter
+   their specificity, so an unlayered `a { color: inherit }` would silently beat text-*. */
+@layer base {
+  * { box-sizing: border-box; }
+  html {
+    /* iOS inflates text when a page rotates to landscape, which silently breaks every line-clamp
+       and two-line reservation in the catalog. Opting out keeps phone and iPad landscape honest. */
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+  body {
+    margin: 0; background: var(--cream); color: var(--ink);
+    font-family: var(--font-thai), "Noto Sans Thai", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    /* Thai has no capital letters to carry the eye, so it needs more leading than Latin defaults. */
+    line-height: 1.6;
+    /* Stops a scroll that reaches the end of a snap strip or a sheet from dragging the whole page
+       — and stops Chrome Android from firing pull-to-refresh mid-swipe through a gallery. */
+    overscroll-behavior-y: contain;
+  }
+  /* iOS paints a grey box over anything tapped. The shop has its own pressed states. */
+  a, button, [role="button"], input, select, textarea, summary { -webkit-tap-highlight-color: transparent; }
+  a { color: inherit; text-decoration: none; }
+  /* Form controls carry an intrinsic min-content width from their `size` attribute, which
+     stops grid and flex items from shrinking and produces phone-width horizontal scroll. */
+  input, select, textarea { min-width: 0; }
+
+  /* Grid and flex children default to `min-width: auto`, so they refuse to shrink below their
+     content — a long product name or address then pushes the whole page wider than the phone.
+     That has caused every horizontal-scroll bug in this project, so the default is flipped once
+     here instead of remembering `min-w-0` on each new layout. `:where()` keeps specificity at 0,
+     so an explicit min-w-* utility (the wide CMS tables, for instance) still wins. */
+  :where(.grid, .flex) > * { min-width: 0; }
+
+  /* Every interactive thing gets the same visible focus ring. Keyboard and switch users were
+     navigating a site where focus was invisible, which is a floor issue, not a polish issue. */
+  :where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+    outline: 2px solid var(--orange);
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+}
 .container { width: min(1180px, calc(100% - 40px)); margin: 0 auto; }
+/* The catalog puts a sidebar next to a four-up grid, so it needs more room than the marketing pages. */
+.container-wide { width: min(1400px, calc(100% - 32px)); margin: 0 auto; }
+@media (min-width: 640px) { .container-wide { width: min(1400px, calc(100% - 48px)); } }
+
+/* Grid and flex children refuse to shrink past their content unless min-width is cleared. */
+.checkout-grid > * { min-width: 0; }
+/* Room for the fixed mobile action bar so it never covers the last row of content. */
+.has-action-bar { padding-bottom: 6.5rem; }
+@media (min-width: 1024px) { .has-action-bar { padding-bottom: 0; } }
+
+/* The bottom tab bar and a page's own action bar are both fixed to the bottom edge. Stacking
+   them would take a third of a phone screen, so a page that raises an action bar — product,
+   cart, checkout — drops the tab bar and its spacer for as long as that bar is up.
+   `:has()` rather than a descendant selector because the two live in different subtrees: the
+   action bar is raised from inside the page, the tab bar from the footer. */
+body:has(.has-action-bar) .tab-bar-root { display: none; }
 .eyebrow { color: var(--orange); font-size: 12px; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; }
-.display { font-size: clamp(40px, 7vw, 78px); line-height: .98; letter-spacing: -.06em; font-weight: 900; }
+.eyebrow-invert { color: rgba(255,255,255,.5); font-size: 12px; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; }
+/* Latin display type: headlines that are Latin, and every number the shop is judged on. */
+.font-display { font-family: var(--font-display), var(--font-thai), sans-serif; font-feature-settings: "tnum" 1; }
+.display { font-family: var(--font-display), var(--font-thai), sans-serif; font-size: clamp(38px, 7vw, 78px); line-height: 1.04; letter-spacing: -.04em; font-weight: 700; }
+/* Thai tone marks sit above the cap height, so the big display type needs more leading than a Latin-only headline. */
+/* The home hero sits beside a product card, so the headline has to share the stage: at 92px it
+   was louder than the product it was advertising. */
+.display-xl { font-family: var(--font-display), var(--font-thai), sans-serif; font-size: clamp(30px, 4.2vw, 46px); line-height: 1.15; letter-spacing: -.03em; font-weight: 700; }
+
+/* The part code, set like a number plate. In this hobby people shop by code before they shop by
+   name, so the code is a fixed device across cards, the product page, orders and the CMS. */
+.code-plate {
+  display: inline-flex; align-items: center; gap: .4em;
+  font-family: var(--font-display), monospace; font-weight: 800; font-variant-numeric: tabular-nums;
+  letter-spacing: .08em; text-transform: uppercase;
+}
+
+/* Touch targets. A 32px button is fine with a mouse and a miss with a thumb. */
+@media (pointer: coarse) {
+  .btn, button, [role="button"] { min-height: 44px; }
+}
 .card-shadow { box-shadow: 0 18px 50px rgba(24,33,43,.06); }
+
+/* Shared motion + surface treatments for the storefront. */
+.lift { transition: transform .4s cubic-bezier(.2,.7,.3,1), box-shadow .4s cubic-bezier(.2,.7,.3,1), border-color .3s; }
+/* Gated on a real pointer. A touch device fires :hover on tap and then keeps it until something
+   else is tapped, so on a phone every card a shopper touched stayed lifted behind them. */
+@media (hover: hover) and (pointer: fine) {
+  .lift:hover { transform: translateY(-6px); box-shadow: 0 30px 60px rgba(14,20,27,.13); }
+}
+/* Touch gets a press state instead — feedback at the moment of the tap, not after it. */
+@media (hover: none) {
+  .lift:active { transform: scale(.985); }
+}
+.ink-panel { background: radial-gradient(1100px 600px at 12% -10%, rgba(239,108,61,.28), transparent 60%), radial-gradient(800px 500px at 100% 0%, rgba(120,160,255,.14), transparent 55%), var(--ink-deep); }
+.hair-grid { background-image: linear-gradient(rgba(255,255,255,.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.05) 1px, transparent 1px); background-size: 64px 64px; }
+.ember-text { background: linear-gradient(100deg, var(--ember), var(--orange) 55%, #ffcf9b); -webkit-background-clip: text; background-clip: text; color: transparent; }
+
+/* Used by strips that scroll by drag, arrows or snap — the bar itself adds nothing there. */
+.no-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
+
+@keyframes toast-rise { from { opacity: 0; transform: translateY(14px) scale(.97); } to { opacity: 1; transform: none; } }
+.toast-in { animation: toast-rise .22s cubic-bezier(.2,.7,.3,1); }
+
+/* The header count grows for a beat when something lands in the cart. */
+@keyframes cart-bump { 40% { transform: scale(1.25); } to { transform: none; } }
+.cart-bump { animation: cart-bump .38s cubic-bezier(.2,.7,.3,1); }
+
+@keyframes marquee-slide { to { transform: translateX(-50%); } }
+.marquee { overflow: hidden; }
+.marquee-track { display: flex; width: max-content; animation: marquee-slide 32s linear infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  .marquee-track { animation: none; }
+  .lift:hover { transform: none; }
+  .toast-in, .cart-bump { animation: none; }
+}

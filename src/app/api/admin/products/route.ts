@@ -1,12 +1,19 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { requireAdminApi } from "@/lib/admin-user";
 
 const includeProduct = { category: true, images: { orderBy: { sortOrder: "asc" as const } } };
 const statuses = ["AVAILABLE", "DISCONTINUED"] as const;
 
-export async function GET() { return NextResponse.json(await prisma.product.findMany({ include: includeProduct, orderBy: { createdAt: "desc" } })); }
+export async function GET() {
+  const guard = await requireAdminApi("products");
+  if (guard.error) return NextResponse.json(guard.error.body, { status: guard.error.status });
+ return NextResponse.json(await prisma.product.findMany({ include: includeProduct, orderBy: { createdAt: "desc" } })); }
 
 export async function POST(request: Request) {
+  const guard = await requireAdminApi("products");
+  if (guard.error) return NextResponse.json(guard.error.body, { status: guard.error.status });
+
   const body = await request.json().catch(() => null) as { sku?: string; name?: string; categoryId?: string; price?: number; stock?: number; description?: string; images?: string[] } | null;
   if (!body?.sku || !body.name || !body.categoryId || body.price === undefined || body.stock === undefined) return NextResponse.json({ error: "Missing required product fields" }, { status: 400 });
   const slug = `${body.sku.trim()}-${body.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "")}`;
@@ -15,6 +22,9 @@ export async function POST(request: Request) {
 }
 
 export async function PATCH(request: Request) {
+  const guard = await requireAdminApi("products");
+  if (guard.error) return NextResponse.json(guard.error.body, { status: guard.error.status });
+
   const body = await request.json().catch(() => null) as { id?: string; sku?: string; name?: string; categoryId?: string; price?: number; stock?: number; description?: string; status?: string; images?: string[] } | null;
   if (!body?.id || !body.sku?.trim() || !body.name?.trim() || !body.categoryId || body.price === undefined || body.stock === undefined || !statuses.includes(body.status as typeof statuses[number])) return NextResponse.json({ error: "Invalid product data" }, { status: 400 });
   if (!Number.isFinite(Number(body.price)) || Number(body.price) < 0 || !Number.isInteger(Number(body.stock)) || Number(body.stock) < 0) return NextResponse.json({ error: "Invalid price or stock" }, { status: 400 });

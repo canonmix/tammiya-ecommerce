@@ -1,6 +1,12 @@
 import Link from "next/link";
-import Image from "next/image";
+import type { Metadata } from "next";
 import type { ReactNode } from "react";
+import SiteHeader from "@/components/site-header";
+import SiteFooter from "@/components/site-footer";
+import { getCurrentCustomer } from "@/lib/customer-auth";
+import { getFreeShippingThreshold } from "@/lib/promotions";
+import { pendingPaymentOrders } from "@/lib/orders";
+import { absoluteUrl, breadcrumbSchema, jsonLdGraph, organizationId } from "@/lib/site";
 
 // One drawing style for the whole journey: 24px grid, 1.6 stroke, round caps.
 const stroke = { fill: "none", stroke: "currentColor", strokeWidth: 1.6, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
@@ -21,6 +27,13 @@ const steps = [
   { number: "05", key: "ship", kicker: "SHIP", title: "รับเลข Tracking", detail: "จัดส่งและแจ้งเลขในวันถัดไป" },
 ];
 
+const faqs = [
+  { q: "จ่ายด้วยอะไรได้บ้าง", a: "สแกน QR PromptPay จากแอปธนาคารใดก็ได้ หรือเลือกเก็บเงินปลายทางตอนสั่งซื้อ" },
+  { q: "มีเวลาจ่ายนานแค่ไหน", a: "ระบบจองสินค้าไว้ให้ 1 ชั่วโมง มีนาฬิกานับถอยหลังในหน้าชำระเงิน ถ้าเลยกำหนดออเดอร์จะถูกยกเลิกและคืนสินค้าเข้าสต็อกอัตโนมัติ" },
+  { q: "จ่ายแล้วต้องทำอะไรต่อ", a: "แนบรูปสลิปในหน้าเดิม ระบบตรวจกับธนาคารให้อัตโนมัติ ปกติรู้ผลในไม่กี่วินาที" },
+  { q: "ของส่งเมื่อไหร่", a: "สั่งและชำระก่อน 15:00 น. จัดส่งภายในวันเดียวกัน พร้อมแจ้งเลขพัสดุในประวัติการสั่งซื้อ" },
+];
+
 function StepIcon({ name }: { name: string }) {
   return <svg viewBox="0 0 24 24" aria-hidden className="h-7 w-7">{icons[name]}</svg>;
 }
@@ -30,37 +43,137 @@ function FinishFlag() {
   return <span aria-hidden className="grid h-6 w-6 grid-cols-4 grid-rows-4 overflow-hidden rounded-[5px] ring-1 ring-[#18212b]/15">{Array.from({ length: 16 }).map((_, index) => <span key={index} className={(Math.floor(index / 4) + index) % 2 === 0 ? "bg-[#18212b]" : "bg-white"} />)}</span>;
 }
 
-export default function PaymentPage() {
-  return <main className="min-h-screen bg-[#f7f6f2] text-[#18212b]">
-    <div className="bg-[#18212b] py-3 text-center text-xs tracking-wide text-white">ส่งฟรีเมื่อซื้อครบ ฿1,500 · เก็บเงินปลายทางทั่วประเทศ</div>
-    <header className="sticky top-0 z-20 border-b border-[#e7e1d8] bg-[#f7f6f2]/95 backdrop-blur"><div className="container flex h-20 items-center justify-between gap-5">
-      <Link href="/" aria-label="MINI4WD Premium Shop"><Image src="/mini4wd-logo.png" alt="MINI4WD Premium Shop" width={220} height={66} className="h-10 w-auto" priority/></Link>
-      <nav className="hidden gap-7 text-sm font-bold md:flex"><Link href="/">สินค้า</Link><Link href="/payment" className="text-[#ef6c3d]">วิธีการชำระเงิน</Link><Link href="/#story">เรื่องราวของเรา</Link><Link href="/#service">บริการ</Link></nav>
-      <div className="flex items-center gap-3 text-sm"><Link href="/login" className="hidden rounded-full border border-[#d8d0c5] px-4 py-2 font-bold sm:block">เข้าสู่ระบบ</Link><Link href="/checkout" className="rounded-full bg-[#ef6c3d] px-4 py-2 font-bold text-white">ไปที่ตะกร้า</Link></div>
-    </div></header>
+export const dynamic = "force-dynamic";
+export const metadata: Metadata = {
+  title: "วิธีการชำระเงิน",
+  description: "ขั้นตอนสั่งซื้อและชำระเงินของ Tamiya Premium Shop — สแกน QR PromptPay หรือเก็บเงินปลายทาง พร้อมแจ้งเลขพัสดุทุกออเดอร์",
+  alternates: { canonical: "/payment" },
+};
 
-    <section className="relative isolate overflow-hidden bg-[#18212b] text-white"><div className="absolute inset-0 -z-10 opacity-20" style={{ backgroundImage: "linear-gradient(rgba(255,255,255,.14) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.14) 1px, transparent 1px)", backgroundSize: "42px 42px" }} /><div className="absolute -right-32 -top-40 -z-10 h-[520px] w-[520px] rounded-full border border-white/10"/><div className="absolute -right-16 -top-24 -z-10 h-[360px] w-[360px] rounded-full border border-[#ef6c3d]/40"/><div className="container grid gap-12 py-20 md:grid-cols-[1.05fr_.95fr] md:items-center md:py-28"><div><p className="mb-6 text-xs font-black uppercase tracking-[.3em] text-[#ef6c3d]">Payment journey / 05 steps</p><h1 className="max-w-2xl text-5xl font-black leading-[1.05] tracking-tight md:text-7xl">สั่งง่าย<br/><span className="text-[#ef6c3d]">จ่ายสบาย</span></h1><p className="mt-7 max-w-lg text-lg leading-8 text-white/65">ทุกโค้งของการสั่งซื้อถูกออกแบบให้ชัดเจน ตั้งแต่เลือกสินค้าไปจนถึงวันที่ได้รับเลข Tracking</p><Link href="/#shop" className="mt-9 inline-flex rounded-full bg-[#ef6c3d] px-6 py-3 font-black text-white transition hover:bg-white hover:text-[#18212b]">เลือกสินค้าเลย <span className="ml-3">↗</span></Link></div><div className="relative min-h-[280px] md:min-h-[390px]"><div className="absolute left-4 top-10 h-48 w-48 rounded-[40px] border border-white/15 bg-white/[.04] md:left-16 md:top-14 md:h-64 md:w-64"/><div className="absolute bottom-4 right-2 h-44 w-44 rounded-full border-[22px] border-[#ef6c3d] md:right-12 md:h-64 md:w-64 md:border-[30px]"/><div className="absolute right-8 top-4 rotate-12 text-[100px] font-black italic leading-none text-white/10 md:text-[170px]">QR</div><div className="absolute bottom-8 left-10 rotate-[-8deg] rounded-3xl bg-white p-5 text-[#18212b] shadow-2xl md:left-24 md:p-7"><div className="grid h-28 w-28 grid-cols-5 gap-1 md:h-40 md:w-40 md:gap-2">{Array.from({ length: 25 }).map((_, index) => <span key={index} className={`${[0,1,3,5,7,9,12,13,15,17,18,20,22,24].includes(index) ? "bg-[#18212b]" : "bg-white"} rounded-sm border border-[#18212b]/10`} />)}</div><p className="mt-3 text-center text-xs font-black tracking-[.2em]">SCAN TO PAY</p></div></div></div></section>
+export default async function PaymentPage() {
+  const [customer, freeShipping] = await Promise.all([getCurrentCustomer(), getFreeShippingThreshold()]);
+  const pending = customer ? await pendingPaymentOrders(customer.id) : [];
 
-    <section className="container py-20 md:py-28"><div className="grid gap-5 md:grid-cols-[.75fr_1.25fr] md:items-end"><div><p className="eyebrow mb-4">How it works</p><h2 className="max-w-md text-4xl font-black leading-tight tracking-tight md:text-5xl">จากหน้าร้าน<br/>ถึงหน้าบ้าน</h2></div><p className="max-w-md text-lg leading-8 text-[#687582]">ทำตาม 5 ขั้นตอนนี้ได้เลย เราดูแลให้ตั้งแต่ต้นจนจบ</p></div><div className="relative mt-16">
-      {/* The rail runs between the first and last node centres — each column is 20% wide, so its centre sits at 10%. */}
-      <span aria-hidden className="absolute left-[10%] right-[10%] top-7 hidden h-px bg-[linear-gradient(90deg,#ded6cb_0_6px,transparent_6px_12px)] bg-[length:12px_1px] md:block"/>
-      <span aria-hidden className="absolute left-0 top-[22px] hidden h-2.5 w-2.5 rounded-full bg-[#ef6c3d] md:block"/>
-      <span aria-hidden className="absolute right-0 top-[16px] hidden md:block"><FinishFlag/></span>
-      <ol className="grid gap-6 md:grid-cols-5 md:gap-4">{steps.map((step, index) => <li key={step.number} className="group relative flex gap-5 md:flex-col md:gap-0">
-        <div className="relative flex flex-col items-center md:block">
-          <span className="relative z-10 flex h-14 w-14 shrink-0 items-center justify-center rounded-full border border-[#ded6cb] bg-[#f7f6f2] text-sm font-black tracking-wider transition duration-300 group-hover:border-[#ef6c3d] group-hover:bg-[#ef6c3d] group-hover:text-white group-hover:shadow-[0_10px_24px_rgba(239,108,61,.3)] md:mx-auto">{step.number}</span>
-          {index < steps.length - 1 && <span aria-hidden className="mt-1.5 w-px flex-1 bg-[#ded6cb] md:hidden"/>}
+  // "จ่ายยังไง" and "ของส่งเมื่อไหร่" are asked in search as often as they are asked in chat.
+  // Marked up, the answers can appear straight in the result instead of behind a click — and the
+  // ordered steps are the same five the page already shows, so the two cannot drift.
+  const jsonLd = jsonLdGraph(
+    breadcrumbSchema([["หน้าแรก", "/"], ["วิธีการชำระเงิน", "/payment"]]),
+    {
+      "@type": "FAQPage",
+      "@id": absoluteUrl("/payment#faq"),
+      mainEntity: faqs.map((faq) => ({
+        "@type": "Question",
+        name: faq.q,
+        acceptedAnswer: { "@type": "Answer", text: faq.a },
+      })),
+    },
+    {
+      "@type": "HowTo",
+      "@id": absoluteUrl("/payment#howto"),
+      name: "วิธีสั่งซื้อและชำระเงิน",
+      description: "ขั้นตอนสั่งซื้อสินค้า Tamiya Mini 4WD ตั้งแต่หยิบใส่ตะกร้าจนได้รับเลขพัสดุ",
+      inLanguage: "th-TH",
+      publisher: { "@id": organizationId },
+      step: steps.map((step, index) => ({
+        "@type": "HowToStep",
+        position: index + 1,
+        name: step.title,
+        text: step.detail,
+        url: absoluteUrl(`/payment#step-${index + 1}`),
+      })),
+    },
+  );
+
+  return <main className="bg-white">
+    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd }}/>
+    {/* Same shell as the catalogue: one header, one footer, one set of nav links. */}
+    <SiteHeader customerName={customer?.name} freeShippingThreshold={freeShipping} pendingOrders={pending}/>
+
+    <section className="ink-panel relative overflow-hidden text-white">
+      <div className="hair-grid absolute inset-0 opacity-60"/>
+      <div className="container-wide relative grid gap-8 py-10 sm:gap-12 sm:py-14 md:grid-cols-[1.05fr_.95fr] md:items-center md:py-24">
+        <div>
+          <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-4 py-1.5 text-[11px] font-black tracking-[.16em] uppercase backdrop-blur">
+            <span className="h-1.5 w-1.5 rounded-full bg-[#ff9152]"/>Payment journey · 05 steps
+          </span>
+          <h1 className="display mt-5 sm:mt-7">สั่งง่าย<br/><span className="ember-text">จ่ายสบาย</span></h1>
+          <p className="mt-4 max-w-lg text-[15px] leading-7 text-white/60 sm:mt-7 sm:text-lg sm:leading-8">ทุกโค้งของการสั่งซื้อถูกออกแบบให้ชัดเจน ตั้งแต่เลือกสินค้าไปจนถึงวันที่ได้รับเลขพัสดุ</p>
+          <div className="mt-6 flex flex-wrap gap-2.5 sm:mt-9 sm:gap-3">
+            <Link href="/products" className="inline-flex min-h-12 items-center rounded-full bg-[#ef6c3d] px-7 font-bold text-white transition hover:bg-[#ff8352]">เลือกสินค้าเลย</Link>
+            <Link href="/coupons" className="inline-flex min-h-12 items-center rounded-full border border-white/20 px-7 font-bold text-white/85 transition hover:border-white/50 hover:text-white">ดูคูปองที่แจกอยู่</Link>
+          </div>
         </div>
-        <div className="flex flex-1 flex-col rounded-3xl border border-[#e7e1d8] bg-white p-6 transition duration-300 group-hover:-translate-y-1.5 group-hover:border-[#ef6c3d]/35 group-hover:shadow-[0_22px_45px_rgba(24,33,43,.10)] md:mt-7 md:pb-7 md:text-center">
-          <span className="mb-5 flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-[#fbeae2] text-[#ef6c3d] transition duration-300 group-hover:bg-[#ef6c3d] group-hover:text-white md:mx-auto"><StepIcon name={step.key}/></span>
-          <p className="text-[10px] font-black uppercase tracking-[.22em] text-[#ef6c3d]">{step.kicker}</p>
-          <h3 className="mt-2.5 text-lg font-black leading-snug">{step.title}</h3>
-          <p className="mt-2.5 text-sm leading-6 text-[#687582]">{step.detail}</p>
-        </div>
-      </li>)}</ol>
-    </div></section>
 
-    <section className="border-y border-[#e7e1d8] bg-white py-16"><div className="container flex flex-col justify-between gap-8 md:flex-row md:items-center"><div><p className="eyebrow mb-3">Need a hand?</p><h2 className="text-3xl font-black">มีคำถามเรื่องการสั่งซื้อ?</h2><p className="mt-2 text-[#687582]">ทีมงานพร้อมช่วยให้ทุกสนามของคุณเริ่มต้นได้ง่ายขึ้น</p></div><Link href="/" className="inline-flex w-fit rounded-full bg-[#18212b] px-6 py-3 font-bold text-white transition hover:bg-[#ef6c3d]">กลับไปเลือกสินค้า <span className="ml-3">↗</span></Link></div></section>
-    <footer className="container flex flex-col justify-between gap-5 py-8 text-sm text-[#687582] md:flex-row"><span>© 2026 Tamiya Premium Shop</span><span>ชำระเงินปลายทาง · QR Payment · Support 09x-xxx-xxxx</span></footer>
+        {/* The QR is the one thing everyone recognises about paying here, so it is the hero art. */}
+        <div className="relative min-h-[260px] md:min-h-[380px]">
+          <div className="absolute top-8 left-2 h-40 w-40 rounded-[36px] border border-white/15 bg-white/[.04] md:top-14 md:left-16 md:h-64 md:w-64"/>
+          <div className="absolute right-0 bottom-2 h-36 w-36 rounded-full border-[18px] border-[#ef6c3d] md:right-12 md:h-64 md:w-64 md:border-[30px]"/>
+          <div className="font-display absolute top-2 right-6 rotate-12 text-[88px] leading-none font-extrabold text-white/10 md:text-[170px]">QR</div>
+          <div className="absolute bottom-4 left-6 rotate-[-8deg] rounded-3xl bg-white p-4 text-[#18212b] shadow-2xl md:left-24 md:p-7">
+            <div className="grid h-24 w-24 grid-cols-5 gap-1 md:h-40 md:w-40 md:gap-2">
+              {Array.from({ length: 25 }).map((_, index) => <span key={index} className={`${[0,1,3,5,7,9,12,13,15,17,18,20,22,24].includes(index) ? "bg-[#18212b]" : "bg-white"} rounded-sm border border-[#18212b]/10`}/>)}
+            </div>
+            <p className="code-plate mt-3 justify-center text-[10px]">Scan to pay</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section className="container-wide py-14 md:py-24">
+      <div className="grid gap-5 md:grid-cols-[.75fr_1.25fr] md:items-end">
+        <div>
+          <p className="eyebrow mb-3">How it works</p>
+          <h2 className="max-w-md text-3xl leading-tight font-black tracking-tight md:text-5xl">จากหน้าร้าน<br/>ถึงหน้าบ้าน</h2>
+        </div>
+        <p className="max-w-md leading-8 text-[#687582] md:text-lg">ทำตาม 5 ขั้นตอนนี้ได้เลย เราดูแลให้ตั้งแต่ต้นจนจบ</p>
+      </div>
+
+      <div className="relative mt-10 md:mt-16">
+        {/* The rail runs between the first and last node centres — each column is 20% wide, so its centre sits at 10%. */}
+        <span aria-hidden className="absolute top-7 right-[10%] left-[10%] hidden h-px bg-[linear-gradient(90deg,#ded6cb_0_6px,transparent_6px_12px)] bg-[length:12px_1px] md:block"/>
+        <span aria-hidden className="absolute top-[22px] left-0 hidden h-2.5 w-2.5 rounded-full bg-[#ef6c3d] md:block"/>
+        <span aria-hidden className="absolute top-[16px] right-0 hidden md:block"><FinishFlag/></span>
+        <ol className="grid gap-5 md:grid-cols-5 md:gap-4">{steps.map((step, index) => <li key={step.number} id={`step-${index + 1}`} className="group relative flex scroll-mt-24 gap-4 md:flex-col md:gap-0">
+          <div className="relative flex flex-col items-center md:block">
+            <span className="font-display relative z-10 flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-[#ded6cb] bg-white text-sm font-extrabold tracking-wider transition duration-300 group-hover:border-[#ef6c3d] group-hover:bg-[#ef6c3d] group-hover:text-white md:mx-auto md:h-14 md:w-14">{step.number}</span>
+            {index < steps.length - 1 && <span aria-hidden className="mt-1.5 w-px flex-1 bg-[#ded6cb] md:hidden"/>}
+          </div>
+          <div className="lift flex flex-1 flex-col rounded-[26px] border border-[#e8ebee] bg-white p-5 md:mt-7 md:p-6 md:pb-7 md:text-center">
+            <span className="mb-4 flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#fbeae2] text-[#ef6c3d] transition duration-300 group-hover:bg-[#ef6c3d] group-hover:text-white md:mx-auto md:mb-5 md:h-14 md:w-14"><StepIcon name={step.key}/></span>
+            <p className="code-plate text-[10px] text-[#ef6c3d]">{step.kicker}</p>
+            <h3 className="mt-2 leading-snug font-black md:text-lg">{step.title}</h3>
+            <p className="mt-2 text-sm leading-6 text-[#687582]">{step.detail}</p>
+          </div>
+        </li>)}</ol>
+      </div>
+    </section>
+
+    <section className="border-y border-[#eeebe6] bg-[#faf8f4] py-14 md:py-24">
+      <div className="container-wide">
+        <p className="eyebrow mb-3">Good to know</p>
+        <h2 className="text-3xl font-black tracking-tight md:text-4xl">คำถามที่เจอบ่อย</h2>
+        <div className="mt-8 grid gap-3 md:grid-cols-2 md:gap-4">
+          {faqs.map((faq) => <div key={faq.q} className="rounded-[26px] border border-[#e8ebee] bg-white p-6">
+            <h3 className="font-black">{faq.q}</h3>
+            <p className="mt-2 text-sm leading-7 text-[#687582]">{faq.a}</p>
+          </div>)}
+        </div>
+      </div>
+    </section>
+
+    <section className="container-wide py-14 md:py-20">
+      <div className="relative overflow-hidden rounded-[32px] bg-gradient-to-br from-[#ef6c3d] to-[#ff9152] px-6 py-12 text-center text-white md:px-16 md:py-16">
+        <div className="absolute -top-20 -right-16 h-64 w-64 rounded-full bg-white/15"/>
+        <div className="relative">
+          <p className="code-plate justify-center text-[11px] text-white/75">Ready to race</p>
+          <h2 className="mx-auto mt-4 max-w-2xl text-3xl leading-tight font-black tracking-tight md:text-4xl">พร้อมสั่งของแล้วใช่ไหม</h2>
+          <p className="mx-auto mt-4 max-w-md leading-8 text-white/85">{freeShipping !== null && `ส่งฟรีเมื่อซื้อครบ ฿${freeShipping.toLocaleString("th-TH")} · `}เก็บเงินปลายทางทั่วประเทศ</p>
+          <Link href="/products" className="mt-8 inline-block rounded-full bg-[#18212b] px-8 py-3.5 font-bold text-white transition hover:bg-[#0e141b]">ไปเลือกสินค้า</Link>
+        </div>
+      </div>
+    </section>
+
+    <SiteFooter/>
   </main>;
 }

@@ -24,11 +24,14 @@ model Product {
   stock       Int            @default(0)
   description String
   status      String         @default("AVAILABLE")
+  // Flagged by hand in the CMS to feature the product as a new arrival on the home page.
+  isNewArrival Boolean       @default(false)
   color       String         @default("#f5f7f8")
   createdAt   DateTime       @default(now())
   updatedAt   DateTime       @updatedAt
   category    Category       @relation(fields: [categoryId], references: [id])
   images      ProductImage[]
+  orderItems  OrderItem[]
 }
 
 model ProductImage {
@@ -38,4 +41,222 @@ model ProductImage {
   sortOrder Int     @default(0)
   productId String
   product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+}
+
+// A shop promotion. Two kinds for now:
+//   FREE_SHIPPING    — waive the shipping fee once the subtotal reaches minSubtotal
+//   PERCENT_DISCOUNT — take `percent` off products matching `scope`
+// One table rather than one per kind, so the CMS lists and schedules them the same way.
+model Promotion {
+  id          String    @id @default(cuid())
+  name        String
+  type        String
+  active      Boolean   @default(true)
+  minSubtotal Int       @default(0)
+  percent     Int       @default(0)
+  scope       String    @default("ALL")
+  // A category-scoped promotion can cover several categories at once.
+  categoryIds String[]  @default([])
+  productId   String?
+  startsAt    DateTime?
+  endsAt      DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([type, active])
+}
+
+// A code the shopper types at checkout. Kept apart from Promotion, which applies by itself:
+// a coupon has a code, usage limits, and a record of who redeemed it.
+model Coupon {
+  id               String    @id @default(cuid())
+  code             String    @unique
+  name             String
+  type             String    // PERCENT | FIXED
+  value            Int
+  minSubtotal      Int       @default(0)
+  maxDiscount      Int       @default(0)   // caps a percentage coupon; 0 means no cap
+  usageLimit       Int       @default(0)   // total redemptions allowed; 0 means unlimited
+  perCustomerLimit Int       @default(1)
+  usedCount        Int       @default(0)
+  active           Boolean   @default(true)
+  // Usage window: when a claimed coupon may be spent.
+  startsAt         DateTime?
+  endsAt           DateTime?
+  // Hand-out window and stock: when shoppers may claim it, and how many claims exist.
+  claimLimit       Int       @default(0)   // 0 means unlimited
+  claimedCount     Int       @default(0)
+  claimStartsAt    DateTime?
+  claimEndsAt      DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  redemptions      CouponRedemption[]
+  claims           CouponClaim[]
+
+  @@index([active])
+}
+
+// A coupon a shopper has taken for themselves. Claiming is what puts a coupon in someone's
+// wallet; only a claimed coupon can be spent, which is why there is no code to type any more.
+model CouponClaim {
+  id         String   @id @default(cuid())
+  couponId   String
+  customerId String
+  createdAt  DateTime @default(now())
+  coupon     Coupon   @relation(fields: [couponId], references: [id], onDelete: Cascade)
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@unique([couponId, customerId])
+  @@index([customerId])
+}
+
+// One row per successful use, which is what enforces the per-customer limit and gives the
+// shopper a history of what they have already used.
+model CouponRedemption {
+  id         String   @id @default(cuid())
+  couponId   String
+  customerId String
+  orderId    String   @unique
+  amount     Int
+  createdAt  DateTime @default(now())
+  coupon     Coupon   @relation(fields: [couponId], references: [id], onDelete: Cascade)
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  order      Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([couponId, customerId])
+}
+
+// One issued phone verification code. The code itself is never stored — only its hash — so a
+// database leak cannot be replayed. Rows are kept after use because the rate limits count them.
+model PhoneOtp {
+  id         String    @id @default(cuid())
+  phone      String
+  codeHash   String
+  expiresAt  DateTime
+  attempts   Int       @default(0)
+  consumedAt DateTime?
+  ip         String    @default("")
+  createdAt  DateTime  @default(now())
+
+  @@index([phone, createdAt])
+  @@index([ip, createdAt])
+}
+
+// A CMS operator. `permissions` holds the menu keys this person may open; `role` is only the
+// preset those permissions came from, so changing a preset later never silently re-grants access.
+model AdminUser {
+  id           String    @id @default(cuid())
+  username     String    @unique
+  name         String
+  passwordHash String
+  role         String    @default("STAFF")
+  permissions  String[]  @default([])
+  active       Boolean   @default(true)
+  lastLoginAt  DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+}
+
+// Singleton row (id is always "default") holding the account money is transferred to.
+// The storefront builds its PromptPay QR from it, and slip verification compares a slip's
+// receiving account against these values.
+model PaymentSetting {
+  id                String   @id @default("default")
+  promptPayId       String   @default("")
+  accountName       String   @default("")
+  bankName          String   @default("")
+  bankAccountNumber String   @default("")
+  note              String   @default("")
+  updatedAt         DateTime @updatedAt
+}
+
+// A shopper can arrive by phone signup or by Facebook, so both identifiers are optional
+// and at least one is always set by the routes that create the row.
+model Customer {
+  id           String    @id @default(cuid())
+  name         String
+  phone        String?   @unique
+  passwordHash String?
+  facebookId   String?   @unique
+  createdAt    DateTime  @default(now())
+  addresses    Address[]
+  orders       Order[]
+  redemptions  CouponRedemption[]
+  couponClaims CouponClaim[]
+}
+
+model Address {
+  id          String   @id @default(cuid())
+  customerId  String
+  recipient   String
+  phone       String
+  line1       String
+  subdistrict String   @default("")
+  district    String
+  province    String
+  postalCode  String
+  note        String   @default("")
+  // Lets a shopper tell saved addresses apart ("บ้าน", "ที่ทำงาน").
+  label       String   @default("")
+  createdAt   DateTime @default(now())
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  orders     Order[]
+}
+
+model Order {
+  id          String      @id @default(cuid())
+  code        String      @unique
+  customerId  String
+  addressId   String
+  subtotal    Int
+  discount    Int         @default(0)
+  shippingFee Int         @default(0)
+  total       Int
+  status      String      @default("PENDING_PAYMENT")
+  paidAt      DateTime?
+  // Stock is held from checkout until this moment; after it the order is cancelled and the
+  // reserved units go back on sale. Indexed with status because the sweep queries on both.
+  expiresAt   DateTime?
+  cancelledAt DateTime?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  // Evidence from the slip2go check. transRef is the bank's own transaction id and is unique
+  // across the table, so the same slip can never be used to pay two orders.
+  slipTransRef    String?   @unique
+  slipReferenceId String?
+  slipAmount      Int?
+  slipSenderName  String?
+  slipBankName    String?
+  slipDateTime    DateTime?
+  slipCheckedAt   DateTime?
+
+  // Fulfilment, kept separate from `status` so the payment lifecycle stays untouched.
+  shippingStatus String    @default("PENDING")
+  carrier        String?
+  trackingNumber String?
+  shippedAt      DateTime?
+  deliveredAt    DateTime?
+  couponCode     String?
+  couponDiscount Int      @default(0)
+
+  address     Address     @relation(fields: [addressId], references: [id])
+  customer    Customer    @relation(fields: [customerId], references: [id])
+  items       OrderItem[]
+  redemption  CouponRedemption?
+
+  @@index([status, expiresAt])
+}
+
+// Name, sku and price are snapshotted so an order still reads correctly after the CMS edits the product.
+model OrderItem {
+  id        String  @id @default(cuid())
+  orderId   String
+  productId String
+  sku       String
+  name      String
+  price     Int
+  quantity  Int
+  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product   Product @relation(fields: [productId], references: [id])
 }
