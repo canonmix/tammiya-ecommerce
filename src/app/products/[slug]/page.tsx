@@ -6,6 +6,7 @@ import { describeProduct, getCatalogProduct, getRelatedProducts } from "@/lib/ca
 import ProductGallery from "@/components/product-gallery";
 import ProductCard from "@/components/product-card";
 import BuyNowButton from "@/components/buy-now-button";
+import ShareButtons from "@/components/share-buttons";
 import SiteHeader from "@/components/site-header";
 import SiteFooter from "@/components/site-footer";
 import { getCurrentCustomer } from "@/lib/customer-auth";
@@ -178,6 +179,11 @@ export default async function ProductPage({ params }: Props) {
           <dt className="text-[#98a2ac]">หมวดหมู่</dt><dd className="text-right font-bold">{product.category}</dd>
           <dt className="text-[#98a2ac]">แบรนด์</dt><dd className="text-right font-bold">Tamiya</dd>
         </dl>
+
+        {/* Sharing a part code into a club chat is how half this shop's traffic already moves.
+            The canonical URL is passed in rather than read from the browser so the link carries
+            the production origin the OG card is generated for. */}
+        <ShareButtons url={absoluteUrl(path)} title={`Tamiya ${product.sku} ${product.name}`} sku={product.sku}/>
       </article>
     </div>
 
