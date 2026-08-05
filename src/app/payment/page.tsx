@@ -46,7 +46,7 @@ function FinishFlag() {
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "วิธีการชำระเงิน",
-  description: "ขั้นตอนสั่งซื้อและชำระเงินของ Tamiya Premium Shop — สแกน QR PromptPay หรือเก็บเงินปลายทาง พร้อมแจ้งเลขพัสดุทุกออเดอร์",
+  description: "ขั้นตอนสั่งซื้อและชำระเงินของ MOJUNG-SHOP — สแกน QR PromptPay หรือเก็บเงินปลายทาง พร้อมแจ้งเลขพัสดุทุกออเดอร์",
   alternates: { canonical: "/payment" },
 };
 

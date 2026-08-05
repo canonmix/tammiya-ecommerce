@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import Image from "next/image";
+import BrandMark from "@/components/brand-mark";
 
 /**
  * The 404 a shopper lands on when a product code no longer exists.
@@ -20,8 +20,8 @@ export default function NotFound() {
   return <main className="ink-panel relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-6 py-16 text-center text-white">
     <div className="hair-grid absolute inset-0 opacity-50"/>
     <div className="relative w-full max-w-md">
-      <Link href="/" aria-label="MINI4WD Premium Shop" className="inline-block">
-        <Image src="/mini4wd-logo-mark.png" alt="MINI4WD Premium Shop" width={580} height={126} className="mx-auto h-6 w-auto"/>
+      <Link href="/" aria-label="MOJUNG-SHOP" className="inline-block">
+        <BrandMark className="text-lg"/>
       </Link>
       <p className="font-display mt-10 text-[76px] leading-none font-extrabold tracking-tight text-white/12 sm:text-[104px]">404</p>
       <h1 className="-mt-6 text-[26px] leading-8 font-black tracking-tight sm:-mt-8 sm:text-3xl">ไม่เจอหน้านี้แล้ว</h1>

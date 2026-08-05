@@ -11,7 +11,7 @@ import { pendingPaymentOrders } from "@/lib/orders";
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "แจกคูปองส่วนลด Tamiya Mini 4WD",
-  description: "กดรับคูปองส่วนลดของร้าน MINI4WD Premium Shop เก็บไว้ในกระเป๋า แล้วเลือกใช้ตอนสั่งซื้อได้เลย ไม่ต้องพิมพ์โค้ด มีจำนวนจำกัด",
+  description: "กดรับคูปองส่วนลดของร้าน MOJUNG-SHOP เก็บไว้ในกระเป๋า แล้วเลือกใช้ตอนสั่งซื้อได้เลย ไม่ต้องพิมพ์โค้ด มีจำนวนจำกัด",
   keywords: ["คูปอง Tamiya", "ส่วนลด Mini 4WD", "โค้ดส่วนลดทามิย่า", "โปรโมชั่น Tamiya"],
   alternates: { canonical: "/coupons" },
   openGraph: { title: "แจกคูปองส่วนลด Tamiya Mini 4WD", description: "กดรับคูปองเก็บไว้ แล้วเลือกใช้ตอนสั่งซื้อ ไม่ต้องพิมพ์โค้ด", url: "/coupons", type: "website" },

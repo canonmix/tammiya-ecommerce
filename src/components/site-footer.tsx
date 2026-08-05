@@ -1,5 +1,5 @@
 import Link from "next/link";
-import Image from "next/image";
+import BrandMark from "@/components/brand-mark";
 import BottomTabBar from "@/components/bottom-tab-bar";
 import { getCatalogCategories } from "@/lib/catalog";
 
@@ -24,7 +24,7 @@ export default async function SiteFooter() {
     <footer id="service" className="bg-[#0e141b] pt-10 pb-8 text-white md:pt-20 md:pb-10">
       <div className="container-wide grid grid-cols-2 gap-x-6 gap-y-8 border-b border-white/10 pb-9 md:grid-cols-[1.4fr_repeat(3,1fr)] md:gap-12 md:pb-14">
         <div className="col-span-2 md:col-span-1">
-          <Image src="/mini4wd-logo-mark.png" alt="MINI4WD Premium Shop" width={580} height={126} className="h-6 w-auto md:h-7"/>
+          <BrandMark className="text-lg md:text-xl"/>
           <p className="mt-4 max-w-xs text-[13px] leading-6 text-white/50 md:mt-6 md:text-sm md:leading-7">โมเดล อะไหล่ และของแต่ง Mini 4WD ของแท้ คัดมาแล้วสำหรับคนที่จริงจังกับทุกสนาม</p>
           <a href="tel:09xxxxxxxx" className="mt-4 inline-flex min-h-11 items-center text-sm font-bold text-white/80 transition hover:text-[#ff9152] md:mt-6">Support 09x-xxx-xxxx</a>
         </div>
@@ -44,7 +44,7 @@ export default async function SiteFooter() {
         </div>)}
       </div>
       <div className="container-wide flex flex-col justify-between gap-2 pt-6 text-[11px] text-white/40 md:flex-row md:pt-8 md:text-xs">
-        <span>© {year} MINI4WD Premium Shop · จำหน่ายสินค้า Tamiya ของแท้</span>
+        <span>© {year} MOJUNG-SHOP · จำหน่ายสินค้า Tamiya ของแท้</span>
         <span>ชำระเงินปลายทาง · QR Payment · โอนผ่านธนาคาร</span>
       </div>
     </footer>

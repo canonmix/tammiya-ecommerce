@@ -1,5 +1,5 @@
 import Link from "next/link";
-import Image from "next/image";
+import BrandMark from "@/components/brand-mark";
 import { redirect } from "next/navigation";
 import type { Metadata } from "next";
 import AuthForm from "@/components/auth-form";
@@ -25,8 +25,8 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
     <div className="w-full max-w-md">
       {inCheckout && <div className="mb-6 rounded-[28px] border border-[#e8ebee] bg-white p-5"><CheckoutSteps current={2}/></div>}
       <div className="card-shadow rounded-[32px] bg-white p-8">
-        <Link href="/" aria-label="MINI4WD Premium Shop">
-          <Image src="/mini4wd-logo-mark.png" alt="MINI4WD Premium Shop" width={580} height={126} className="h-9 w-auto invert" priority/>
+        <Link href="/" aria-label="MOJUNG-SHOP">
+          <BrandMark className="text-xl"/>
         </Link>
         <h1 className="mt-9 text-3xl font-black tracking-tight">เข้ามาใน Garage</h1>
         <p className="mt-2 text-[#687582]">{inCheckout ? "เข้าสู่ระบบเพื่อไปต่อที่ขั้นตอนจัดส่ง" : "เข้าสู่ระบบเพื่อดูออเดอร์และสะสมสิทธิพิเศษ"}</p>

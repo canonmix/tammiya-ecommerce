@@ -19,7 +19,7 @@ export const toInternational = (phone: string) => {
 };
 
 // Kept to one Unicode SMS segment (70 characters) so a code never costs more than one credit.
-const otpMessage = (code: string) => `รหัส OTP: ${code} (ใช้ได้ 10 นาที) - MINI4WD PREMIUM SHOP`;
+const otpMessage = (code: string) => `รหัส OTP: ${code} (ใช้ได้ 10 นาที) - MOJUNG-SHOP`;
 
 export async function sendOtpSms(phone: string, code: string): Promise<SmsResult> {
   if (!isSmsConfigured()) {

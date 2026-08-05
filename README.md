@@ -1,4 +1,4 @@
-# Tamiya Premium Shop
+# MOJUNG-SHOP
 
 SEO-first e-commerce starter for Tamiya Mini 4WD products.
 

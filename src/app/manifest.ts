@@ -9,7 +9,7 @@ import { siteDescription, siteName } from "@/lib/site";
 export default function manifest(): MetadataRoute.Manifest {
   return {
     name: `${siteName} | Tamiya Mini 4WD`,
-    short_name: "MINI4WD",
+    short_name: "MOJUNG",
     description: siteDescription,
     lang: "th",
     dir: "ltr",

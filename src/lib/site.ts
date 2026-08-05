@@ -13,9 +13,9 @@ const fromEnv = process.env.NEXT_PUBLIC_SITE_URL || (process.env.VERCEL_PROJECT_
 // a separate URL — strip it once here instead of at every call site.
 export const siteUrl = (fromEnv || "http://localhost:3000").replace(/\/+$/, "");
 
-export const siteName = "MINI4WD Premium Shop";
+export const siteName = "MOJUNG-SHOP";
 export const siteTagline = "โมเดลและอะไหล่ Tamiya Mini 4WD ของแท้";
-export const siteDescription = "ร้าน Tamiya Mini 4WD ของแท้ รวมรถ Mini 4WD อะไหล่ มอเตอร์ โรลเลอร์ และของแต่งครบทุกรหัส ส่งไวจากคลังในไทย เก็บเงินปลายทางทั่วประเทศ";
+export const siteDescription = "MOJUNG-SHOP ร้าน Tamiya Mini 4WD ของแท้ รวมรถ Mini 4WD อะไหล่ มอเตอร์ โรลเลอร์ และของแต่งครบทุกรหัส ส่งไวจากคลังในไทย เก็บเงินปลายทางทั่วประเทศ";
 
 export const siteKeywords = [
   "Tamiya",
@@ -44,9 +44,11 @@ export const organizationSchema = () => ({
   "@type": "Organization",
   "@id": organizationId,
   name: siteName,
-  alternateName: ["Tamiya Premium Shop", "MINI4WD Shop"],
+  // Names people actually type when they search for the shop, so the two spellings resolve to
+  // the same entity rather than competing with each other.
+  alternateName: ["MOJUNG SHOP", "Mojung Shop", "โมจัง ชอป"],
   url: absoluteUrl("/"),
-  logo: { "@type": "ImageObject", url: absoluteUrl("/mini4wd-premium-shop-logo.png"), width: 580, height: 126 },
+  logo: { "@type": "ImageObject", url: absoluteUrl("/icon-512.png"), width: 512, height: 512 },
   description: siteDescription,
   areaServed: { "@type": "Country", name: "Thailand" },
 });

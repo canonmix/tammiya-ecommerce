@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
+import BrandMark from "@/components/brand-mark";
 import { usePathname } from "next/navigation";
 import { ADMIN_MENUS } from "@/lib/admin-permissions";
 import { useAdminChrome } from "@/components/admin/admin-chrome";
@@ -24,8 +24,8 @@ export default function AdminSidebar() {
 
   return <>
     <aside className="fixed hidden h-screen w-64 flex-col bg-[#18212b] p-7 text-white md:flex">
-      <Link href="/" className="text-xl font-black"><Image src="/mini4wd-logo-mark.png" alt="MINI4WD Premium Shop" width={580} height={126} className="h-9 w-auto" priority/></Link>
-      <p className="mt-2 text-xs text-white/45">PREMIUM SHOP CMS</p>
+      <Link href="/" className="text-xl font-black"><BrandMark className="text-xl"/></Link>
+      <p className="mt-2 text-xs text-white/45">SHOP CMS</p>
       <nav className="mt-12 grid gap-3 text-sm">
         {links.map((link) => <Link key={link.href} href={link.href} className={isCurrent(link.href) ? "rounded-xl bg-white/10 p-3 font-bold" : "p-3 text-white/60 transition hover:text-white"}>{link.label}</Link>)}
       </nav>
@@ -38,8 +38,8 @@ export default function AdminSidebar() {
     {/* Below md the sidebar is hidden, which would leave the CMS with no navigation at all. */}
     <div className="sticky top-0 z-30 bg-[#18212b] text-white md:hidden">
       <div className="flex items-center justify-between gap-3 px-4 py-3">
-        <Link href="/" aria-label="MINI4WD Premium Shop">
-          <Image src="/mini4wd-logo-mark.png" alt="MINI4WD Premium Shop" width={580} height={126} className="h-5 w-auto"/>
+        <Link href="/" aria-label="MOJUNG-SHOP">
+          <BrandMark className="text-base"/>
         </Link>
         <button onClick={logout} className="rounded-full border border-white/15 px-3 py-1.5 text-xs font-bold text-white/80">ออกจากระบบ</button>
       </div>

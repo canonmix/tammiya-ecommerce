@@ -4,7 +4,7 @@ import { siteName } from "@/lib/site";
 
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
-export const alt = "สินค้าของ MINI4WD Premium Shop";
+export const alt = "สินค้าของ MOJUNG-SHOP";
 
 // Price and stock move with the CMS, and the card shows the price, so it is rendered per request.
 export const dynamic = "force-dynamic";

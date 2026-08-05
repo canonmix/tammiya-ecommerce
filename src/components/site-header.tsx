@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
+import BrandMark from "@/components/brand-mark";
 import { usePathname, useRouter } from "next/navigation";
 import { useCart } from "@/lib/cart";
 import AccountMenu, { ACCOUNT_LINKS, initialOf } from "@/components/account-menu";
@@ -67,8 +67,8 @@ export default function SiteHeader({ customerName, freeShippingThreshold, pendin
     <div className="sticky top-0 z-40">
     <header className="border-b border-white/10 bg-[#0e141b]/90 backdrop-blur-xl">
       <div className="container-wide flex h-16 items-center justify-between gap-3 md:h-[76px] md:gap-6">
-        <Link href="/" aria-label="MINI4WD Premium Shop" className="shrink-0">
-          <Image src="/mini4wd-logo-mark.png" alt="MINI4WD Premium Shop" width={580} height={126} className="h-6 w-auto md:h-7" priority/>
+        <Link href="/" className="shrink-0 text-white">
+          <BrandMark className="text-[17px] md:text-xl"/>
         </Link>
         <nav className="hidden items-center gap-1 md:flex">
           {NAV.map((item) => <Link key={item.href} href={item.href} className={`flex items-center gap-1.5 rounded-full px-3 py-2 text-sm font-bold transition lg:px-4 ${isActive(item.href) ? "bg-white/10 text-white" : item.flag ? "text-[#ff9152] hover:text-[#ffb184]" : "text-white/60 hover:text-white"}`}>
