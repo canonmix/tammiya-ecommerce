@@ -32,6 +32,14 @@ model Product {
   category    Category       @relation(fields: [categoryId], references: [id])
   images      ProductImage[]
   orderItems  OrderItem[]
+
+  // Every storefront read filters on status and then orders by createdAt — the catalog, the
+  // category listings, the sitemap and the related-products rows all share that shape. Without
+  // an index Postgres scans the whole table each time, which is free at thirty products and is
+  // not at five hundred. The second index serves the category listings, which narrow by category
+  // before they sort.
+  @@index([status, createdAt])
+  @@index([categoryId, status])
 }
 
 model ProductImage {

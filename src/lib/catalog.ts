@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { releaseExpiredOrders } from "@/lib/orders";
@@ -57,8 +58,18 @@ const toCatalogProduct = (product: ProductRow, promotions: Promotion[] = []): Ca
   };
 };
 
+/**
+ * Every catalog read below is memoised per request with React's `cache()`.
+ *
+ * A page is assembled from parts that do not know about each other — `generateMetadata`, the page
+ * body, the footer — and each one asked the database the same question. A product page issued the
+ * identical promotions query four times and the identical category query twice. `cache()` scopes
+ * to one request and nothing more, so a second request always sees fresh prices and stock; this
+ * removes repetition, not freshness.
+ */
+
 // Only AVAILABLE products reach the shop; anything the CMS marks ยกเลิกจำหน่าย disappears from it.
-export async function getCatalogProducts(): Promise<CatalogProduct[]> {
+export const getCatalogProducts = cache(async (): Promise<CatalogProduct[]> => {
   // Storefront traffic is what drives the expiry sweep, so stock counts shown here are current.
   await releaseExpiredOrders();
   const [products, promotions] = await Promise.all([
@@ -66,23 +77,24 @@ export async function getCatalogProducts(): Promise<CatalogProduct[]> {
     activePromotions(),
   ]);
   return products.map((product) => toCatalogProduct(product, promotions));
-}
+});
 
-export async function getCatalogProduct(slug: string): Promise<CatalogProduct | null> {
+// Keyed by slug, so two different products in one request still cost two queries — which is right.
+export const getCatalogProduct = cache(async (slug: string): Promise<CatalogProduct | null> => {
   const [product, promotions] = await Promise.all([prisma.product.findUnique({ where: { slug }, include }), activePromotions()]);
   return product && product.status === "AVAILABLE" ? toCatalogProduct(product, promotions) : null;
-}
+});
 
 // Categories with nothing to sell would render a filter chip that always comes back empty.
 // The count is filtered the same way so the sidebar total matches what the grid actually shows.
-export async function getCatalogCategories(): Promise<CatalogCategory[]> {
+export const getCatalogCategories = cache(async (): Promise<CatalogCategory[]> => {
   const categories = await prisma.category.findMany({
     where: { products: { some: { status: "AVAILABLE" } } },
     orderBy: { name: "asc" },
     select: { name: true, _count: { select: { products: { where: { status: "AVAILABLE" } } } } },
   });
   return categories.map((category) => ({ name: category.name, count: category._count.products }));
-}
+});
 
 /**
  * Slug + last-changed date for every indexable product, for `sitemap.xml`.
@@ -103,22 +115,36 @@ export async function getSitemapProducts(): Promise<Array<{ slug: string; update
  *
  * Falling back beyond the category matters for a shop this size — a category with one item
  * would otherwise end the page on an empty row.
+ *
+ * The database does the narrowing now. This used to select every available product with all of
+ * its images and then keep four of them in JavaScript: invisible at thirty products, and a full
+ * table scan plus a full image join on every product view at five hundred. The two queries are
+ * bounded and only the second one runs when the category alone cannot fill the row.
  */
 export async function getRelatedProducts(product: CatalogProduct, limit = 4): Promise<CatalogProduct[]> {
-  const [rows, promotions] = await Promise.all([
+  // In-stock first within each group: an out-of-stock suggestion is a dead end. Postgres sorts
+  // booleans false < true, so `desc` puts "has stock" on top.
+  const orderBy = [{ stock: "desc" as const }, { createdAt: "desc" as const }];
+  const [sameCategory, promotions] = await Promise.all([
     prisma.product.findMany({
-      where: { status: "AVAILABLE", slug: { not: product.slug } },
+      where: { status: "AVAILABLE", slug: { not: product.slug }, category: { name: product.category } },
       include,
-      orderBy: { createdAt: "desc" },
+      orderBy,
+      take: limit,
     }),
     activePromotions(),
   ]);
-  const all = rows.map((row) => toCatalogProduct(row, promotions));
-  const sameCategory = all.filter((item) => item.category === product.category);
-  const rest = all.filter((item) => item.category !== product.category);
-  // In-stock items come first within each group: an out-of-stock suggestion is a dead end.
-  const byStock = (a: CatalogProduct, b: CatalogProduct) => Number(b.stock > 0) - Number(a.stock > 0);
-  return [...sameCategory.sort(byStock), ...rest.sort(byStock)].slice(0, limit);
+
+  // Only pay for the fallback when the category could not fill the row.
+  const shortfall = limit - sameCategory.length;
+  const filler = shortfall <= 0 ? [] : await prisma.product.findMany({
+    where: { status: "AVAILABLE", slug: { not: product.slug }, category: { name: { not: product.category } } },
+    include,
+    orderBy,
+    take: shortfall,
+  });
+
+  return [...sameCategory, ...filler].map((row) => toCatalogProduct(row, promotions));
 }
 
 // Importers type spec sheets as one paragraph, separating the points with whichever of these

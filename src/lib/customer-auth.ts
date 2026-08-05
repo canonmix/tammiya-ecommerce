@@ -1,5 +1,6 @@
 import { randomBytes, scrypt, timingSafeEqual } from "node:crypto";
 import { promisify } from "node:util";
+import { cache } from "react";
 import { cookies } from "next/headers";
 import { prisma } from "@/lib/prisma";
 import { CUSTOMER_COOKIE, readCustomerSession } from "@/lib/customer-session";
@@ -32,8 +33,16 @@ export function normalizePhone(input: string) {
 
 export const isValidPhone = (phone: string) => /^0[0-9]{9}$/.test(phone);
 
-export async function getCurrentCustomer() {
+/**
+ * The signed-in shopper, or null.
+ *
+ * Memoised per request: a storefront page asks for it, the layout asks again, and the header
+ * needs the name — all from the same cookie, so one lookup answers all of them. The cache is
+ * keyed by the call, and the cookie cannot change mid-request, so there is no way for one
+ * shopper's row to be handed to another.
+ */
+export const getCurrentCustomer = cache(async () => {
   const customerId = await readCustomerSession((await cookies()).get(CUSTOMER_COOKIE)?.value);
   if (!customerId) return null;
   return prisma.customer.findUnique({ where: { id: customerId } });
-}
+});
